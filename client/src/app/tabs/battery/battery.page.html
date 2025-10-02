@@ -1,0 +1,115 @@
+<ion-header [translucent]="true">
+  <ion-toolbar mode="ios">
+    <ion-title> Batterie Information </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" color="light">
+  <!-- <ion-refresher *ngIf="!loading" slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher> -->
+
+  <!-- <div class="spinner-container" *ngIf="loading">
+    <ion-spinner></ion-spinner>
+  </div> *ngIf="!loading"-->
+
+  <ion-list [inset]="true" mode="ios">
+    <ion-item mode="ios">
+      <ion-icon aria-hidden="true" name="flash-outline" slot="end"></ion-icon>
+      <ion-label>
+        <p>Spannung</p>
+        <h1>{{data.voltage}} V</h1>
+      </ion-label>
+    </ion-item>
+    <ion-item>
+      <ion-icon aria-hidden="true" name="logo-react" slot="end"></ion-icon>
+      <ion-label>
+        <p>Strom</p>
+        <h1>{{data.current}} A</h1>
+      </ion-label>
+    </ion-item>
+    <ion-item>
+      <ion-icon aria-hidden="true" name="battery-half-outline" slot="end"></ion-icon>
+      <ion-label>
+        <p>Prozent</p>
+        <h1>{{data.percentage}} %</h1>
+      </ion-label>
+    </ion-item>
+    <ion-item>
+      <ion-icon aria-hidden="true" name="stats-chart-outline" slot="end"></ion-icon>
+      <ion-label>
+        <p>Status</p>
+        <h1 *ngIf="data.charging == 1" class="good-health-container">kein Laden</h1>
+        <h1 *ngIf="data.charging == 7" class="good-health-container">Wird geladen(float)</h1>
+        <h1 *ngIf="data.charging == 11" class="good-health-container">Wird geladen(Boost)</h1>
+        {{data.charging}}
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <ion-list [inset]="true" mode="ios">
+    <ion-item mode="ios">
+      <ion-icon aria-hidden="true" name="flash-outline" slot="end"></ion-icon>
+      <ion-label>
+        <p>Spannung Min</p>
+        <h1>{{data.voltageMin}} V</h1>
+      </ion-label>
+    </ion-item>
+    <ion-item>
+      <ion-icon aria-hidden="true" name="flash-outline" slot="end"></ion-icon>
+      <ion-label>
+        <p>Spannung Max</p>
+        <h1>{{data.voltageMax}} V</h1>
+      </ion-label>
+    </ion-item>
+    <ion-item>
+      <ion-icon aria-hidden="true" name="thermometer-outline" slot="end"></ion-icon>
+      <ion-label>
+        <p>Temperatur</p>
+        <h1>{{data.temperature}} °C</h1>
+      </ion-label>
+    </ion-item>
+    <ion-item>
+      <ion-icon aria-hidden="true" name="medkit-outline" slot="end"></ion-icon>
+      <ion-label>
+        <p>Gesundheit</p>
+        <h1 *ngIf="data.health == 0" class="good-health-container">✅ Alles normal</h1>
+        <h1 *ngIf="data.health == 1" class="bad-health-container">⚡ Überspannung</h1>
+        <h1 *ngIf="data.health == 2" class="bad-health-container">🔋 Unterspannung</h1>
+        <h1 *ngIf="data.health == 3" class="bad-health-container">🔋 Unterspannung + 🔻 Tiefentladung</h1>
+        <h1 *ngIf="data.health == 16" class="bad-health-container">🌡️ Übertemperatur</h1>
+        <h1 *ngIf="data.health == 18" class="bad-health-container">🌡️ Übertemperatur + 🔋 Unterspannung</h1>
+        <h1 *ngIf="data.health == 32" class="bad-health-container">❄️ Untertemperatur</h1>
+        <h1 *ngIf="data.health == 33" class="bad-health-container">❄️ Untertemperatur + ⚡ Überspannung</h1>
+        <h1 *ngIf="data.health == 256" class="bad-health-container">⚠️ Innenwiderstand abnormal</h1>
+        <h1 *ngIf="data.health == 257" class="bad-health-container">⚠️ Innenwiderstand abnormal + ⚡ Überspannung</h1>
+        <h1 *ngIf="data.health == 512" class="bad-health-container"></h1>
+        <h1 *ngIf="data.health == 32768" class="bad-health-container">❌ Nennspannung nicht erkannt</h1>
+        <h1 *ngIf="data.health == 32833" class="bad-health-container">❌ Nennspannungfehler + ❄️ Untertemperatur + ⚡
+          Überspannung</h1>
+        <h1 *ngIf="data.health == 33059" class="bad-health-container">❌ Nennspannungfehler + ⚠️ Innenwiderstand +
+          Tiefentladung + Untertemp.</h1>
+
+
+        <!-- 
+        0 0x0000 0000 0000 0000 0000 ✅ Alles normal
+        1 0x0001 0000 0000 0000 0001 ⚡ Überspannung
+        2 0x0002 0000 0000 0000 0010 🔋 Unterspannung
+        3 0x0003 0000 0000 0000 0011 🔋 Unterspannung + 🔻 Tiefentladung
+        16 0x0010 0000 0000 0001 0000 🌡️ Übertemperatur
+        18 0x0012 0000 0000 0001 0010 🌡️ Übertemperatur + 🔋 Unterspannung
+        32 0x0020 0000 0000 0010 0000 ❄️ Untertemperatur
+        33 0x0021 0000 0000 0010 0001 ❄️ Untertemperatur + ⚡ Überspannung
+        256 0x0100 0000 0001 0000 0000 ⚠️ Innenwiderstand abnormal
+        257 0x0101 0000 0001 0000 0001 ⚠️ Innenwiderstand abnormal + ⚡ Überspannung
+        512 0x0200 0000 0010 0000 0000 (nicht definiert, könnte reserved sein)
+        32768 0x8000 1000 0000 0000 0000 ❌ Nennspannung nicht erkannt
+        32833 0x8021 1000 0000 0010 0001 ❌ Nennspannungfehler + ❄️ Untertemperatur + ⚡ Überspannung
+        33059 0x8133 1000 0001 0011 0011 ❌ Nennspannungfehler + ⚠️ Innenwiderstand + Tiefentladung + Untertemp. 
+        -->
+
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+</ion-content>

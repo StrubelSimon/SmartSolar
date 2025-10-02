@@ -1,0 +1,55 @@
+<ion-header [translucent]="true">
+  <ion-toolbar mode="ios">
+    <ion-title>
+      PV Information
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" color="light">
+
+  <ion-list [inset]="true" mode="ios">
+    <ion-item mode="ios">
+      <ion-icon aria-hidden="true" name="flash-outline" slot="end"></ion-icon>
+      <ion-label>
+        <p>Spannung</p>
+        <h1>{{data.voltage}} V</h1>
+      </ion-label>
+    </ion-item>
+    <ion-item>
+      <ion-icon aria-hidden="true" name="logo-react" slot="end"></ion-icon>
+      <ion-label>
+        <p>Strom</p>
+        <h1>{{data.current}} A</h1>
+      </ion-label>
+    </ion-item>
+    <ion-item>
+      <ion-icon aria-hidden="true" name="battery-half-outline" slot="end"></ion-icon>
+      <ion-label>
+        <p>Power</p>
+        <h1>{{data.power}} W</h1>
+      </ion-label>
+    </ion-item>
+    <ion-item>
+      <ion-icon aria-hidden="true" name="stats-chart-outline" slot="end"></ion-icon>
+      <ion-label>
+        <p>PV Status</p>
+        <h1 *ngIf="data.status == 1" class="good-health-container">Normal / kein Kurzschluss</h1>
+        <h1 *ngIf="data.status == 7" class="good-health-container">Normal / kein Kurzschluss</h1>
+        <h1 *ngIf="data.status == 11" class="bad-health-container">Normal / kein Kurzschluss</h1>
+
+        {{data.status}}
+
+        <!-- Zusammenfassung für Wert 11:
+
+PV Input Status: normal
+PV Kurzschluss: kein Kurzschluss
+Ladezustand: Boost Mode
+Fehlerstatus: Fehler aktiv
+Gerät läuft -->
+
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+</ion-content>

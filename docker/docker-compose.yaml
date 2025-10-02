@@ -1,0 +1,42 @@
+name: smartsolar
+services:
+  mqtt-broker:
+    image: eclipse-mosquitto:2.0
+    container_name: smartsolar-mqtt-broker
+    ports:
+      - "7012:1883"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/config/passwd:/mosquitto/config/passwd
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    networks:
+      - smartsolar_network
+
+  api:
+    image: smartsolar-api:latest
+    container_name: smartsolar-api
+    environment:
+      - TZ=Europe/Berlin
+      - MQTT_IP=${MQTT_IP}
+      - MQTT_USER=${MQTT_USER}
+      - MQTT_PASS=${MQTT_PASS}
+    ports:
+      - "7011:3000"
+    restart: unless-stopped
+    networks:
+      - smartsolar_network
+  client:
+    image: smartsolar-client:latest
+    container_name: smartsolar-client
+    command: nginx -g 'daemon off;'
+    environment:
+      - TZ=Europe/Berlin
+    ports:
+      - "7010:80"
+    restart: unless-stopped
+    networks:
+      - smartsolar_network
+networks:
+  smartsolar_network:
+    driver: bridge

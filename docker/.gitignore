@@ -1,0 +1,10 @@
+/client/www
+.env
+
+/api/app
+/api/.env
+
+smartsolar-api.img
+smartsolar-client.img
+
+mosquitto/config/passwd

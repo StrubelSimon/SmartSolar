@@ -1,0 +1,7 @@
+{
+  "name": "smartsolar",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
