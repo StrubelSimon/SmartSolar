@@ -20,7 +20,7 @@ import { SocketService } from 'src/services/socket-service';
     IonIcon
   ],
 })
-export class PVPage implements OnInit, OnDestroy {
+export class PVPage implements OnDestroy {
 
   public data: any = {
     voltage: 0,
@@ -33,7 +33,11 @@ export class PVPage implements OnInit, OnDestroy {
 
   constructor(private socketService: SocketService) { }
 
-  ngOnInit(): void {
+  ionViewWillEnter(): void {
+    this.loadData();
+  }
+
+  loadData(): void {
     // Subscribe auf /modbus/battery
     this.mqttSubscription = this.socketService.subscribeTopic('modbus/pv').subscribe((data: string) => {
       this.data = JSON.parse(data);

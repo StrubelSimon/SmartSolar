@@ -69,6 +69,26 @@ io.on('connection', (socket: any) => {
         socket.leave(topic);
     });
 
+
+    socket.on("publish", (data: any) => {
+        // data sollte { topic: string, message: any } enthalten
+        if (!data.topic || !data.message) {
+            socket.emit("response", { error: "Topic oder Nachricht fehlt" });
+            return;
+        }
+
+        // MQTT Nachricht veröffentlichen
+        mqttClient.publish(data.topic, JSON.stringify(data.message), { qos: 1 }, (err: any) => {
+            if (err) {
+                console.error('Fehler beim Publishen:', err);
+                socket.emit("response", { error: "MQTT Publish fehlgeschlagen" });
+            } else {
+                console.log(`Nachricht gesendet an ${data.topic}:`, data.message);
+                socket.emit("response", { msg: "Befehl erfolgreich an MQTT gesendet" });
+            }
+        });
+    });
+
     socket.on('disconnect', () => {
         console.log('Client disconnected');
     });

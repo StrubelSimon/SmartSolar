@@ -29,7 +29,7 @@ import { SocketService } from 'src/services/socket-service';
     IonLabel,
     IonIcon],
 })
-export class BatteryPage implements OnInit, OnDestroy {
+export class BatteryPage implements OnDestroy {
 
   public data: any = {
     voltage: 0,
@@ -45,7 +45,12 @@ export class BatteryPage implements OnInit, OnDestroy {
 
   constructor(private socketService: SocketService) { }
 
-  ngOnInit(): void {
+
+  ionViewWillEnter(): void {
+    this.loadData();
+  }
+
+  loadData(): void {
     // Subscribe auf /modbus/battery
     this.mqttSubscription = this.socketService.subscribeTopic('modbus/battery').subscribe((data: string) => {
       this.data = JSON.parse(data);

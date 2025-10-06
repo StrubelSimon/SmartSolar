@@ -4,8 +4,8 @@
 
 export const environment = {
   production: false,
-  socket: "http://localhost:3000"
-  // socket: "https://smartpv.strubel.io"
+  // socket: "http://localhost:3000"
+  socket: "https://smartpv.strubel.io"
 };
 
 /*

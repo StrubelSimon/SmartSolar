@@ -27,4 +27,8 @@ export class SocketService {
   unsubscribeTopic(topic: string) {
     this.socket.emit('unsubscribe', topic);
   }
+
+  sendCommand(command: string, data?: any) {
+    this.socket.emit(command, data);
+  }
 }

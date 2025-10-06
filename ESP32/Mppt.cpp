@@ -4,6 +4,7 @@
 #include <ArduinoJson.h>
 
 #define RX2 16
+
 #define TX2 17
 
 ModbusMaster node;
@@ -70,10 +71,65 @@ String Mppt::getPVData()
 	return jsonString;
 }
 
+int Mppt::getLoadSwitch() {
+    uint8_t rc = node.readHoldingRegisters(0x906A, 1);
+    if (rc == node.ku8MBSuccess) {
+        return node.getResponseBuffer(0); // 0=off, 1=on
+    } else {
+        return -1; // Fehler
+    }
+}
+
+bool Mppt::setLoadSwitch(bool on) {
+    uint16_t value = on ? 1 : 0;
+    uint8_t rc = node.writeSingleRegister(0x906A, value);
+    return (rc == node.ku8MBSuccess);
+}
+
+int Mppt::getLoadMode() {
+    uint8_t rc = node.readHoldingRegisters(0x903D, 1);
+    if (rc == node.ku8MBSuccess) {
+        return node.getResponseBuffer(0); // 0x0000=Manual
+    } else {
+        return -1;
+    }
+}
+
+bool Mppt::setLoadMode(uint16_t mode) {
+    uint8_t rc = node.writeSingleRegister(0x903D, mode);
+    return (rc == node.ku8MBSuccess);
+}
+
+void Mppt::toggleLoad() {
+    int mode = getLoadMode();
+    if (mode != 0x0000) { // Manual Control
+        Serial.println("⚠️ Modus nicht Manual, setze auf Manual...");
+        if (!setLoadMode(0x0000)) {
+            Serial.println("Fehler beim Setzen des Manual Mode ❌");
+            return;
+        }
+        // Optional: Parameter setzen, falls nötig
+        // setLoadParameters(startV, stopV, delaySec);
+    }
+
+    int status = getLoadSwitch();
+    if (status == -1) {
+        Serial.println("Fehler beim Lesen des Load-Status");
+        return;
+    }
+
+    bool newStatus = (status == 0); // negieren
+    if (setLoadSwitch(newStatus)) {
+        Serial.print("Load ");
+        Serial.println(newStatus ? "eingeschaltet ✅" : "ausgeschaltet ✅");
+    } else {
+        Serial.println("Fehler beim Setzen des Load-Status ❌");
+    }
+}
+
 int Mppt::connectToModbus(uint16_t address)
 {
-	uint8_t result;
-	result = node.readInputRegisters(address, 1);
+	uint8_t result = node.readInputRegisters(address, 1);
 
 	if (result == node.ku8MBSuccess) {
 		return node.getResponseBuffer(0);

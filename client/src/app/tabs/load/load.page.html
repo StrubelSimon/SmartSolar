@@ -29,14 +29,16 @@
         <h1>{{data.power}} W</h1>
       </ion-label>
     </ion-item>
+  </ion-list>
+  <ion-list [inset]="true" mode="ios">
     <ion-item>
-      <ion-icon aria-hidden="true" name="stats-chart-outline" slot="end"></ion-icon>
+      <!-- <ion-icon aria-hidden="true" name="stats-chart-outline" slot="end"></ion-icon> -->
       <ion-label>
         <p>Load Status</p>
         <h1 *ngIf="data.status == 0" class="danger-container">Off</h1>
         <h1 *ngIf="data.status == 1" class="success-container">On</h1>
       </ion-label>
-      <!-- <ion-toggle justify="end" [checked]="getLoadState()" (ionChange)="toggleLoadState()"></ion-toggle> -->
+      <ion-toggle justify="end" [checked]="getLoadState(data.status)" (ionChange)="toggleLoadState()"></ion-toggle>
     </ion-item>
   </ion-list>
 

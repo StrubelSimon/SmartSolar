@@ -12,8 +12,6 @@ const char* password = SECRET_PASS;
 
 // MQTT-Broker
 const char* mqtt_server = MQTT_IP;
-
-// MQTT Login
 const char* mqtt_user = SECRET_MQTT_USER;
 const char* mqtt_pass = SECRET_MQTT_PASS;
 
@@ -23,73 +21,94 @@ Mppt mpptController;
 
 #define LED_PIN 48
 #define NUM_LEDS 1
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
 
-unsigned long lastReconnectAttempt = 0;
-
-void setup_wifi() {
-  delay(10);
-  Serial.println();
-  Serial.print("Verbinde mit WLAN: ");
-  Serial.println(ssid);
-
-  WiFi.begin(ssid, password);
-
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-
-  Serial.println("");
-  Serial.println("WLAN verbunden!");
-  Serial.print("IP Adresse: ");
-  Serial.println(WiFi.localIP());
-}
-
+// --- Funktionen ---
 void setLEDColor(uint8_t r, uint8_t g, uint8_t b) {
   strip.setPixelColor(0, strip.Color(r, g, b));
   strip.show();
 }
 
+void setup_wifi() {
+  Serial.println();
+  Serial.print("Verbinde mit WLAN: ");
+  Serial.println(ssid);
+
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("\nWLAN verbunden!");
+  Serial.print("IP Adresse: ");
+  Serial.println(WiFi.localIP());
+}
+
+bool subscribeTopic(const char* topic) {
+  if (!client.connected()) {
+    Serial.println("⚠️ MQTT nicht verbunden, Abonnement fehlgeschlagen");
+    return false;
+  }
+
+  if (client.subscribe(topic)) {
+    Serial.print("✅ Erfolgreich abonniert: ");
+    Serial.println(topic);
+    return true;
+  } else {
+    Serial.print("❌ Abonnement fehlgeschlagen: ");
+    Serial.println(topic);
+    return false;
+  }
+}
+
+void toggleLoadStatus() {
+  int status = mpptController.getLoadSwitch();
+  if (status == 1) Serial.println("Load ist AN");
+  else if (status == 0) Serial.println("Load ist AUS");
+  else {
+    Serial.println("Fehler beim Lesen des Load-Status");
+    return;
+  }
+
+  bool newStatus = (status == 0); // negieren
+  bool success = mpptController.setLoadSwitch(newStatus);
+  if (success) {
+    Serial.print("Load ");
+    Serial.println(newStatus ? "eingeschaltet ✅" : "ausgeschaltet ✅");
+
+    String statusMsg = newStatus ? "on" : "off";
+    if (client.connected()) {
+      client.publish("modbus/load/status", statusMsg.c_str());
+      Serial.print("Status veröffentlicht: ");
+      Serial.println(statusMsg);
+    }
+  } else {
+    Serial.println("Fehler beim Setzen des Load-Status ❌");
+  }
+}
+
 void callback(char* topic, byte* payload, unsigned int length) {
+  String msg;
+  for (unsigned int i = 0; i < length; i++) {
+    msg += (char)payload[i];
+  }
+
   Serial.print("Nachricht empfangen [");
   Serial.print(topic);
   Serial.print("] ");
-  for (int i = 0; i < length; i++) {
-    Serial.print((char)payload[i]);
-  }
-  Serial.println();
+  Serial.println(msg);
+
+    if (String(topic) == "modbus/load/toggle") {
+        mpptController.toggleLoad(); // automatisch Modus prüfen und Load toggeln
+    }
 }
-
-void setup() {
-  Serial.begin(9600);
-
-  setup_wifi();
-  client.setServer(mqtt_server, MQTT_PORT);
-  client.setCallback(callback);
-
-  mpptController.setupModbusRTU();
-
-  strip.begin();
-  strip.show();
-  strip.setBrightness(30); 
-
-  esp_task_wdt_config_t wdt_config = {
-    .timeout_ms = 15000,   // 15 Sekunden Timeout
-    .idle_core_mask = (1 << portNUM_PROCESSORS) - 1, // beide Kerne überwachen
-    .trigger_panic = true
-  };
-
-  esp_task_wdt_init(&wdt_config);
-  esp_task_wdt_add(NULL);
-}
-
 
 bool reconnect() {
   Serial.print("Versuche MQTT-Verbindung...");
   if (client.connect("ESP32Client", mqtt_user, mqtt_pass)) {
     Serial.println("verbunden");
-    client.subscribe("esp32/topic");
+    subscribeTopic("modbus/load/toggle");
     return true;
   } else {
     Serial.print("fehlgeschlagen, rc=");
@@ -98,48 +117,66 @@ bool reconnect() {
   }
 }
 
+// --- Setup ---
+void setup() {
+  Serial.begin(9600);
+  setup_wifi();
+
+  client.setServer(mqtt_server, MQTT_PORT);
+  client.setCallback(callback);
+
+  mpptController.setupModbusRTU();
+
+  strip.begin();
+  strip.show();
+  strip.setBrightness(30);
+
+  // Watchdog konfigurieren
+  esp_task_wdt_config_t wdt_config = {
+    .timeout_ms = 15000,
+    .idle_core_mask = (1 << portNUM_PROCESSORS) - 1,
+    .trigger_panic = true
+  };
+  esp_task_wdt_init(&wdt_config);
+  esp_task_wdt_add(NULL);
+}
+
+// --- Loop ---
 void loop() {
   esp_task_wdt_reset();
-  // --- WLAN Verbindung prüfen ---
+
+  // WLAN prüfen
   if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("⚠️ WLAN verloren, versuche non-blocking Reconnect...");
-    WiFi.reconnect(); // kurz versuchen (nicht blockierend)
+    Serial.println("⚠️ WLAN verloren, versuche reconnect...");
+    WiFi.reconnect();
   }
 
-  // --- MQTT Verbindung prüfen ---
+  // MQTT prüfen
+  static unsigned long lastReconnectAttempt = 0;
+  unsigned long now = millis();
   if (!client.connected()) {
-    static unsigned long lastReconnectAttempt = 0;
-    unsigned long now = millis();
-
-    if (now - lastReconnectAttempt > 5000) {  // alle 5 Sekunden versuchen
+    if (now - lastReconnectAttempt > 5000) {
       lastReconnectAttempt = now;
-      if (reconnect()) {
-        lastReconnectAttempt = 0;  // Reset wenn erfolgreich
-      }
+      reconnect();
     }
   } else {
-    client.loop();  // nur aufrufen wenn verbunden
+    client.loop();
   }
 
-  // --- alle 2 Sekunden Daten senden ---
-  static long lastMsg = 0;
-  long now = millis();
+  // alle 2 Sekunden Daten senden
+  static unsigned long lastMsg = 0;
   if (now - lastMsg > 2000) {
     lastMsg = now;
 
     setLEDColor(0, 255, 0); // LED grün = senden aktiv
 
-    // --- MPPT Daten ---
     esp_task_wdt_reset();
     String batteryData = mpptController.getBatteryData();
-    esp_task_wdt_reset();
     String pvData      = mpptController.getPVData();
-    esp_task_wdt_reset();
     String loadData    = mpptController.getLoadData();
     esp_task_wdt_reset();
 
-    // --- MQTT publish ---
-    if (client.connected()) { // nur senden, wenn MQTT aktiv
+    if (client.connected()) {
       client.publish("modbus/battery", batteryData.c_str());
       client.publish("modbus/pv", pvData.c_str());
       client.publish("modbus/load", loadData.c_str());
@@ -148,5 +185,5 @@ void loop() {
     setLEDColor(255, 0, 0); // LED rot = fertig
   }
 
-  delay(10); // kleine Pause, entlastet CPU / WiFi Stack
+  delay(10);
 }
