@@ -5,6 +5,7 @@ services:
     container_name: smartsolar-mqtt-broker
     ports:
       - "7012:1883"
+    restart: unless-stopped
     volumes:
       - ./mosquitto/config:/mosquitto/config
       - ./mosquitto/config/passwd:/mosquitto/config/passwd

@@ -62,32 +62,6 @@ bool subscribeTopic(const char* topic) {
   }
 }
 
-void toggleLoadStatus() {
-  int status = mpptController.getLoadSwitch();
-  if (status == 1) Serial.println("Load ist AN");
-  else if (status == 0) Serial.println("Load ist AUS");
-  else {
-    Serial.println("Fehler beim Lesen des Load-Status");
-    return;
-  }
-
-  bool newStatus = (status == 0); // negieren
-  bool success = mpptController.setLoadSwitch(newStatus);
-  if (success) {
-    Serial.print("Load ");
-    Serial.println(newStatus ? "eingeschaltet ✅" : "ausgeschaltet ✅");
-
-    String statusMsg = newStatus ? "on" : "off";
-    if (client.connected()) {
-      client.publish("modbus/load/status", statusMsg.c_str());
-      Serial.print("Status veröffentlicht: ");
-      Serial.println(statusMsg);
-    }
-  } else {
-    Serial.println("Fehler beim Setzen des Load-Status ❌");
-  }
-}
-
 void callback(char* topic, byte* payload, unsigned int length) {
   String msg;
   for (unsigned int i = 0; i < length; i++) {
@@ -100,7 +74,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.println(msg);
 
     if (String(topic) == "modbus/load/toggle") {
-        mpptController.toggleLoad(); // automatisch Modus prüfen und Load toggeln
+      mpptController.toggleLoad(); // automatisch Modus prüfen und Load toggeln
     }
 }
 

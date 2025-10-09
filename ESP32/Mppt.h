@@ -13,12 +13,14 @@ class Mppt
     String getBatteryData();
     String getLoadData();
     String getPVData();
-    int getLoadSwitch();
-    bool setLoadSwitch(bool on);
+    int getManualLoadSwitch();
+    bool setManualLoad(bool on);  
     int getLoadMode();                       // Load Control Mode auslesen
     bool setLoadMode(uint16_t mode);         // Load Control Mode setzen
-    void toggleLoad();  
+    void toggleLoad();
+    
   private:
+    float connectToModbus32(uint16_t addressLow, uint16_t times);
     int connectToModbus(uint16_t address);
 };
 
