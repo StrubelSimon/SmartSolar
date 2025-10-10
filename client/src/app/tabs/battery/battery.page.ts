@@ -36,15 +36,16 @@ export class BatteryPage implements OnDestroy {
     current: 0,
     percentage: 0,
     charging: 0,
-    voltageMin: 0,
-    voltageMax: 0,
+    voltage_min: 0,
+    voltage_max: 0,
     temperature: 0,
-    health: 0
+    health: 0,
+    volt_status: 0,
+    temp_status: 0
   }
   private mqttSubscription!: Subscription;
 
   constructor(private socketService: SocketService) { }
-
 
   ionViewWillEnter(): void {
     this.loadData();

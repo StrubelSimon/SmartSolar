@@ -73,7 +73,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("] ");
   Serial.println(msg);
 
-    if (String(topic) == "modbus/load/toggle") {
+    if (String(topic) == "modbus/load/switch") {
       mpptController.toggleLoad(); // automatisch Modus prüfen und Load toggeln
     }
 }
@@ -82,12 +82,30 @@ bool reconnect() {
   Serial.print("Versuche MQTT-Verbindung...");
   if (client.connect("ESP32Client", mqtt_user, mqtt_pass)) {
     Serial.println("verbunden");
-    subscribeTopic("modbus/load/toggle");
+    subscribeTopic("modbus/load/switch");
     return true;
   } else {
     Serial.print("fehlgeschlagen, rc=");
     Serial.println(client.state());
     return false;
+  }
+}
+
+void reconnect_wifi() {
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("⚠️ WLAN verloren, versuche reconnect...");
+    int attempts = 0;
+    while (WiFi.status() != WL_CONNECTED && attempts < 10) {
+      attempts++;
+      Serial.print(".");
+      delay(1000);
+    }
+
+    if (WiFi.status() == WL_CONNECTED) {
+      Serial.println("\nWLAN verbunden!");
+    } else {
+      Serial.println("\nFehler bei der WLAN-Verbindung!");
+    }
   }
 }
 
@@ -118,12 +136,7 @@ void setup() {
 // --- Loop ---
 void loop() {
   esp_task_wdt_reset();
-
-  // WLAN prüfen
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("⚠️ WLAN verloren, versuche reconnect...");
-    WiFi.reconnect();
-  }
+  reconnect_wifi(); 
 
   // MQTT prüfen
   static unsigned long lastReconnectAttempt = 0;

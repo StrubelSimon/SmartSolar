@@ -30,8 +30,12 @@
         <h1>{{data.power}} W</h1>
       </ion-label>
     </ion-item>
+
+  </ion-list>
+
+  <ion-list [inset]="true" mode="ios">
     <ion-item>
-      <ion-icon aria-hidden="true" name="stats-chart-outline" slot="end"></ion-icon>
+      <!-- <ion-icon aria-hidden="true" name="stats-chart-outline" slot="end"></ion-icon> -->
       <ion-label>
         <p>PV Status</p>
         <h1 *ngIf="data.status == 0" class="good-health-container">Normal</h1>
@@ -51,21 +55,21 @@
       </ion-label>
     </ion-item>
     <ion-item>
-      <ion-icon aria-hidden="true" name="logo-react" slot="end"></ion-icon>
+      <ion-icon aria-hidden="true" name="flash-outline" slot="end"></ion-icon>
       <ion-label>
         <p>Erzeugt (Monat)</p>
         <h1>{{data.generated_month}} kWh</h1>
       </ion-label>
     </ion-item>
     <ion-item>
-      <ion-icon aria-hidden="true" name="battery-half-outline" slot="end"></ion-icon>
+      <ion-icon aria-hidden="true" name="flash-outline" slot="end"></ion-icon>
       <ion-label>
         <p>Erzeugt (Jahr)</p>
         <h1>{{data.generated_year}} kWh</h1>
       </ion-label>
     </ion-item>
     <ion-item>
-      <ion-icon aria-hidden="true" name="battery-half-outline" slot="end"></ion-icon>
+      <ion-icon aria-hidden="true" name="flash-outline" slot="end"></ion-icon>
       <ion-label>
         <p>Erzeugt (Total)</p>
         <h1>{{data.generated_total}} kWh</h1>

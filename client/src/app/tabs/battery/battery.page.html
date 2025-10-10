@@ -5,13 +5,6 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" color="light">
-  <!-- <ion-refresher *ngIf="!loading" slot="fixed" (ionRefresh)="handleRefresh($event)">
-    <ion-refresher-content></ion-refresher-content>
-  </ion-refresher> -->
-
-  <!-- <div class="spinner-container" *ngIf="loading">
-    <ion-spinner></ion-spinner>
-  </div> *ngIf="!loading"-->
 
   <ion-list [inset]="true" mode="ios">
     <ion-item mode="ios">
@@ -35,8 +28,11 @@
         <h1>{{data.percentage}} %</h1>
       </ion-label>
     </ion-item>
+  </ion-list>
+
+  <ion-list [inset]="true" mode="ios">
     <ion-item>
-      <ion-icon aria-hidden="true" name="stats-chart-outline" slot="end"></ion-icon>
+      <!-- <ion-icon aria-hidden="true" name="battery-charging-outline" slot="end"></ion-icon> -->
       <ion-label>
         <p>Status</p>
         <h1 *ngIf="data.charging == 0" class="warning-health-container">No charging</h1>
@@ -45,11 +41,8 @@
         <h1 *ngIf="data.charging == 3" class="good-health-container">Charging (equalization)</h1>
       </ion-label>
     </ion-item>
-  </ion-list>
-
-  <ion-list [inset]="true" mode="ios">
     <ion-item>
-      <ion-icon aria-hidden="true" name="medkit-outline" slot="end"></ion-icon>
+      <!-- <ion-icon aria-hidden="true" name="medkit-outline" slot="end"></ion-icon> -->
       <ion-label>
         <p>Volt Status</p>
         <h1 *ngIf="data.volt_status == 0" class="good-health-container">Normal</h1>
@@ -62,7 +55,7 @@
     </ion-item>
 
     <ion-item>
-      <ion-icon aria-hidden="true" name="medkit-outline" slot="end"></ion-icon>
+      <!-- <ion-icon aria-hidden="true" name="medkit-outline" slot="end"></ion-icon> -->
       <ion-label>
         <p>Temp Status</p>
         <h1 *ngIf="data.temp_status == 0" class="good-health-container">Normal</h1>

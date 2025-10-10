@@ -22,11 +22,17 @@ import { SocketService } from 'src/services/socket-service';
 })
 export class LoadPage implements OnDestroy {
 
+  public loadDisabled: boolean = false;
+  public oldLoadStatus: any;
   public data: any = {
     voltage: 0,
     current: 0,
     power: 0,
-    status: 0
+    status: 0,
+    consumed_today: 0,
+    consumed_month: 0,
+    consumed_year: 0,
+    consumed_total: 0
   }
 
   private mqttSubscription!: Subscription;
@@ -38,9 +44,12 @@ export class LoadPage implements OnDestroy {
   }
 
   loadData(): void {
-    // Subscribe auf /modbus/battery
     this.mqttSubscription = this.socketService.subscribeTopic('modbus/load').subscribe((data: string) => {
       this.data = JSON.parse(data);
+      if (this.oldLoadStatus !== this.data.status) {
+        this.loadDisabled = false;
+      }
+
     });
   }
 
@@ -52,11 +61,18 @@ export class LoadPage implements OnDestroy {
     }
   }
 
-  toggleLoadState() {
+  toggleLoadState(status: any) {
+    this.loadDisabled = true;
+    this.oldLoadStatus = status;
     const payload = {
-      topic: 'modbus/load/toggle',
+      topic: 'modbus/load/switch',
       message: { command: 'turn_on_off', timestamp: Date.now() }
     };
+    if (status === 1) {
+      payload.message.command = "off"
+    } else {
+      payload.message.command = "on"
+    }
     this.socketService.sendCommand("publish", payload)
   }
 
